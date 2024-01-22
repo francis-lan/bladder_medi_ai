@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['bladder']
+
+roboflow:
+  workspace: francis-tyq45
+  project: bladder-detection
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/francis-tyq45/bladder-detection/dataset/1
