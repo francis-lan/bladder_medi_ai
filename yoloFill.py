@@ -11,6 +11,9 @@ correct = False
 adjust = 0
 adj_list=[]
 jump = False
+mid_but_init = None
+left_but_init = None
+right_but_init = None
 
 def FF_ver_down(img, seed_point, threshold,y1,y2):
     match_points=[]
@@ -51,7 +54,7 @@ def FF_ver_right(img, seed_point, threshold, x1, x2):
     match_points=[]
     seed_color = (0, 0, 0)
     for x in range(seed_point[0], x2):
-        current_color = img[seed_point[1], x] 
+        current_color = img[int(seed_point[1]), x] 
         color_diff = (abs(int(current_color[0]) - int(seed_color[0])), abs(int(current_color[1]) - int(seed_color[1])), abs(int(current_color[2]) - int(seed_color[2])))
         if all(diff <= threshold for diff in color_diff):
             match_points.append((x, seed_point[1]))
@@ -68,7 +71,7 @@ def FF_ver_left(img, seed_point, threshold, x1, x2):
     match_points=[]
     seed_color = (0, 0, 0)
     for x in range(seed_point[0], x1, -1):
-        current_color = img[seed_point[1], x] 
+        current_color = img[int(seed_point[1]), x] 
         color_diff = (abs(int(current_color[0]) - int(seed_color[0])), abs(int(current_color[1]) - int(seed_color[1])), abs(int(current_color[2]) - int(seed_color[2])))
         if all(diff <= threshold for diff in color_diff):
             match_points.append((x, seed_point[1]))
@@ -98,24 +101,19 @@ def FF_parr(img, seed_point,left_point, right_point, threshold, y1, y2):
 
     return left_gap, right_gap, mid_gap
 
-def FF_trian(img, seed_point, left_point, right_point, threshold, y1, y2,x1,x2):
-    left_but  = FF_ver_down(img, left_point, threshold, y1, y2)
-    right_but  = FF_ver_down(img, right_point, threshold, y1, y2)
-    mid_but  = FF_ver_down(img, seed_point, threshold, y1, y2)
-    left_p = FF_ver_left(img,( seed_point[0],left_but[1]), threshold, x1, x2)
-    right_p = FF_ver_right(img,( seed_point[0],right_but[1]), threshold, x1, x2)
+def FF_trian(img, seed_point,mid_but,left_but,right_but, threshold, y1, y2,x1,x2):
+    
+    
     ML_gap = (mid_but[0] - left_but[0]) * (mid_but[0] - left_but[0]) + (left_but[1] - mid_but[1]) * (left_but[1] - mid_but[1])
     MR_gap = (mid_but[0] - right_but[0]) * (mid_but[0] - right_but[0]) + (right_but[1] - mid_but[1]) * (right_but[1] - mid_but[1])
-    left = [(left_but[0]+left_p[0])//2, (left_but[1]+left_p[1])//2]
-    right = [(right_but[0]+right_p[0])//2, (right_but[1]+right_p[1])//2]
-    LR_gap = (left[0] - right[0]) * (left[0] - right[0]) + (left[1] - right[1]) * (left[1] - right[1])
-    delta_LM = round((left[1] - mid_but[1])/(left[0] - mid_but[0]),3)
-    delta_MR =round((right[1] - mid_but[1])/(right[0] - mid_but[0]),3)
+    LR_gap = (left_but[0] - right_but[0]) * (left_but[0] - right_but[0]) + (left_but[1] - right_but[1]) * (left_but[1] - right_but[1])
+    delta_LM = round((left_but[1] - mid_but[1])/(left_but[0] - mid_but[0]),3)
+    delta_MR =round((right_but[1] - mid_but[1])/(right_but[0] - mid_but[0]),3)
 
 
-    cv2.line(img, (left[0], left[1]), (right[0], right[1]), (0, 0, 255), 2)
-    cv2.line(img, (left[0], left[1]), (mid_but[0], mid_but[1]), (0, 0, 255), 2)
-    cv2.line(img, (right[0], right[1]), (mid_but[0], mid_but[1]), (0, 0, 255), 2)
+    cv2.line(img, (int(left_but[0]), int(left_but[1])), (int(right_but[0]), int(right_but[1])), (0, 0, 255), 2)
+    cv2.line(img, (int(left_but[0]), int(left_but[1])), (int(mid_but[0]), int(mid_but[1])), (0, 0, 255), 2)
+    cv2.line(img, (int(right_but[0]), int(right_but[1])), (int(mid_but[0]), int(mid_but[1])), (0, 0, 255), 2)
 
     return ML_gap, LR_gap,MR_gap,delta_LM,delta_MR
     
@@ -145,7 +143,7 @@ def excer_check(del_LM, del_RM, mid_but, img):
             if (del_list[len(del_list) - 1][0] == del_list[0][0] and del_list[0][1] == del_list[len(del_list) - 1][1]) or del_list[len(del_list) - 1][2] == del_list[0][2]:
                 del_corrects.clear()
                 cv2.circle(img, (200,500), 5, (0, 255, 0), -1)
-            if del_list[len(del_list) - 1][0] > del_list[len(del_list) - 2][0]:
+            elif del_list[len(del_list) - 1][0] > del_list[len(del_list) - 2][0]:
                 del_corrects.append(del_list[len(del_list) - 1])
                 del_wrongs.clear()
                 cv2.circle(img, (200,500), 5, (255, 0, 0), -1)
@@ -174,17 +172,25 @@ def excer_check(del_LM, del_RM, mid_but, img):
     elif len(del_wrongs) == 8 and del_wrongs[7][0] > del_list[0][0]:
         wrong_work_times += 1
 
+def draw_flow(img, p0, p1):
+    for i, (new, old) in enumerate(zip(p1, p0)):
+        a, b = new.ravel()
+        c, d = old.ravel()
+        img = cv2.line(img, (int(c), int(d)), (int(a), int(b)), (0, 255, 0), 2)
+        img = cv2.circle(img, (int(a), int(b)), 5, (0, 0, 255), -1)
+    return img    
     
     
     
-    
-def main():  
+def main(): 
+    global mid_but_init, left_but_init,right_but_init 
+    lk_params = dict(winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
     threshold = 90
     model = YOLO("C:/vscode.ai/runs/detect/train7/weights/best.pt")
-    #cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_keep1.mp4')
+    cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_keep1.mp4')
     #cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_2.mp4')
     #cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_1.mp4')
-    cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_keep2.mp4')
+    #cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_keep2.mp4')
     #cap = cv2.VideoCapture("D:/User-Data/Downloads/1701334235.mp4")
     #cap = cv2.VideoCapture("D:/User-Data/Downloads/1701332749.mp4")
     #cap = cv2.VideoCapture("D:/User-Data/Downloads/1701332680.mp4")
@@ -199,6 +205,10 @@ def main():
 
     seed_x = 0
     seed_y = 0
+
+    
+
+
     #之後鏡頭輸入用
     if not cap.isOpened():
         print("Cannot open camera")
@@ -214,6 +224,8 @@ def main():
         black_background = np.zeros((720, 900, 3), dtype=np.uint8)    #建立黑底
         black_background[y1:y2, x1:x2] = cropped_frame                #搞上去
         img  = black_background
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
     
         #results = model(img)                      #yolo直接預測
         setxyxy = model.predict(img)
@@ -240,10 +252,43 @@ def main():
             right_point = (((bx1+bx2)//2 + bx2)//2, (by1+by2)//2)
             seed_x = (bx1 + bx2)//2
             seed_y = (by1 + by2)//2
+        
+        if mid_but_init is None:
+            mid_but_init = FF_ver_down(img, seed_point, threshold, y1, y2)
+            left_but_init = FF_ver_down(img, left_point, threshold, y1, y2)
+            right_but_init = FF_ver_down(img, right_point, threshold, y1, y2)
 
-        left_but  = FF_ver_down(img, left_point, threshold, y1, y2)
-        right_but  = FF_ver_down(img, right_point, threshold, y1, y2)
-        mid_but  = FF_ver_down(img, seed_point, threshold, y1, y2)
+        good_new = None
+        good_old = None
+        if 'old_gray' not in locals():
+            old_gray = gray
+            p0 = np.array([mid_but_init, left_but_init, right_but_init], dtype=np.float32)
+            continue
+
+        p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, gray, p0, None, **lk_params)
+        if len(st.shape) == 1:
+            st = st.reshape(-1, 1)
+
+        good_new = np.array([])
+        good_old = np.array([])
+
+        if st.shape[0] > 0:
+            good_old = p0[st[:, 0] == 1]
+            good_new = p1[st[:, 0] == 1]
+
+            mid_but, left_but, right_but = good_new.reshape(-1, 2)
+
+        img = cv2.circle(img, (int(mid_but[0]), int(mid_but[1])), 5, (0, 255, 0), -1)
+        img = cv2.circle(img, (int(left_but[0]), int(left_but[1])), 5, (0, 255, 0), -1)
+        img = cv2.circle(img, (int(right_but[0]), int(right_but[1])), 5, (0, 255, 0), -1)
+        img = draw_flow(img, good_old, good_new)
+
+
+
+
+        #left_but  = FF_ver_down(img, left_point, threshold, y1, y2)
+        #right_but  = FF_ver_down(img, right_point, threshold, y1, y2)
+        #mid_but  = FF_ver_down(img, seed_point, threshold, y1, y2)
         gg=[]
         deal = []
 
@@ -252,7 +297,7 @@ def main():
             
             print("平行處理")
         else:
-            ML_gap, LR_gap,MR_gap, del_LM, del_RM = FF_trian(img, seed_point, left_point, right_point, threshold, y1, y2,x1,x2)
+            ML_gap, LR_gap,MR_gap, del_LM, del_RM = FF_trian(img, seed_point, mid_but, left_but, right_but, threshold, y1, y2,x1,x2)
             excer_check(del_LM, del_RM, mid_but, img)
             print("三角處理")
             gg = [ML_gap, LR_gap,MR_gap]
@@ -268,6 +313,8 @@ def main():
    
     
         cv2.imshow("img", img)
+        old_gray = gray.copy()
+        p0 = good_new.reshape(-1, 1, 2)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
