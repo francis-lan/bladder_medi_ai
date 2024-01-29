@@ -8,7 +8,7 @@ del_list = []
 correct_work_times = 0
 wrong_work_times = 0
 correct = False
-adjust = 0
+adjust = 5
 adj_list=[]
 jump = False
 mid_but_init = None
@@ -109,13 +109,14 @@ def FF_trian(img, seed_point,mid_but,left_but,right_but, threshold, y1, y2,x1,x2
     LR_gap = (left_but[0] - right_but[0]) * (left_but[0] - right_but[0]) + (left_but[1] - right_but[1]) * (left_but[1] - right_but[1])
     delta_LM = round((left_but[1] - mid_but[1])/(left_but[0] - mid_but[0]),3)
     delta_MR =round((right_but[1] - mid_but[1])/(right_but[0] - mid_but[0]),3)
+    tan_but = round((delta_LM - delta_MR) / (1 - delta_LM * delta_MR),3)
 
 
     cv2.line(img, (int(left_but[0]), int(left_but[1])), (int(right_but[0]), int(right_but[1])), (0, 0, 255), 2)
     cv2.line(img, (int(left_but[0]), int(left_but[1])), (int(mid_but[0]), int(mid_but[1])), (0, 0, 255), 2)
     cv2.line(img, (int(right_but[0]), int(right_but[1])), (int(mid_but[0]), int(mid_but[1])), (0, 0, 255), 2)
 
-    return ML_gap, LR_gap,MR_gap,delta_LM,delta_MR
+    return ML_gap, LR_gap,MR_gap,delta_LM,delta_MR,tan_but
     
 def excer_check(del_LM, del_RM, mid_but, img):
     global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump
@@ -187,10 +188,10 @@ def main():
     lk_params = dict(winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
     threshold = 90
     model = YOLO("C:/vscode.ai/runs/detect/train7/weights/best.pt")
-    cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_keep1.mp4')
+    #cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_keep1.mp4')
     #cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_2.mp4')
     #cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_1.mp4')
-    #cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_keep2.mp4')
+    cap = cv2.VideoCapture('D:/User-Data/Downloads/kegal_keep2.mp4')
     #cap = cv2.VideoCapture("D:/User-Data/Downloads/1701334235.mp4")
     #cap = cv2.VideoCapture("D:/User-Data/Downloads/1701332749.mp4")
     #cap = cv2.VideoCapture("D:/User-Data/Downloads/1701332680.mp4")
@@ -297,7 +298,7 @@ def main():
             
             print("平行處理")
         else:
-            ML_gap, LR_gap,MR_gap, del_LM, del_RM = FF_trian(img, seed_point, mid_but, left_but, right_but, threshold, y1, y2,x1,x2)
+            ML_gap, LR_gap,MR_gap, del_LM, del_RM ,tan_But= FF_trian(img, seed_point, mid_but, left_but, right_but, threshold, y1, y2,x1,x2)
             excer_check(del_LM, del_RM, mid_but, img)
             print("三角處理")
             gg = [ML_gap, LR_gap,MR_gap]
@@ -305,6 +306,7 @@ def main():
 
             gap.append(gg)
             point.append(deal)
+            huge_gap.append(tan_But)
             
 
             
