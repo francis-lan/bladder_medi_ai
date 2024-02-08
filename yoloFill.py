@@ -8,6 +8,7 @@ del_list = []
 correct_work_times = 0
 wrong_work_times = 0
 correct = False
+wrong = False
 adjust = 5
 adj_list=[]
 jump = False
@@ -118,7 +119,9 @@ def FF_trian(img, seed_point,mid_but,left_but,right_but, threshold, y1, y2,x1,x2
 
     return ML_gap, LR_gap,MR_gap,delta_LM,delta_MR,tan_but
     
-def excer_check(del_LM, del_RM, mid_but, img):
+#def excer_check(del_LM, del_RM, mid_but, img):
+
+
     global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump
     LRM = [del_LM, del_RM, mid_but[1]]
     del_list.append(LRM)
@@ -172,6 +175,82 @@ def excer_check(del_LM, del_RM, mid_but, img):
     
     elif len(del_wrongs) == 8 and del_wrongs[7][0] > del_list[0][0]:
         wrong_work_times += 1
+
+def excer_check(del_LM, del_RM, mid_but, img):
+    global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump,wrong
+    LRM = [del_LM, del_RM, mid_but[1]]
+    del_list.append(LRM)
+
+    if len(del_list) <= 2:
+        return
+    else: 
+        #當左側點相對上移
+        if del_list[len(del_list) - 1][0] > del_list[len(del_list) - 2][0] and del_list[len(del_list) - 1][0] > del_list[len(del_list) - 3][0]:
+            if del_list[len(del_list) - 1][1] > del_list[len(del_list) - 2][1] and del_list[len(del_list) - 1][1] > del_list[len(del_list) - 3][1]:
+                if del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 3][2]:
+                    del_corrects.append(del_list[len(del_list) - 1])
+                    cv2.circle(img, (200,500), 5, (0, 255, 0), -1)
+
+                elif del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 3][2]:
+                    del_wrongs.append(del_list[len(del_list) - 1])
+
+            elif del_list[len(del_list) - 1][1] < del_list[len(del_list) - 2][1] and del_list[len(del_list) - 1][1] < del_list[len(del_list) - 3][1]:
+                del_wrongs.append(del_list[len(del_list) - 1])
+            elif del_list[len(del_list) - 1][1] == del_list[len(del_list) - 2][1] or del_list[len(del_list) - 1][1] == del_list[len(del_list) - 2][1]:
+                if del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 3][2]:
+                    del_corrects.append(del_list[len(del_list) - 1])
+                    cv2.circle(img, (200,500), 5, (0, 255, 0), -1)
+
+                elif del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 3][2]:
+                    del_wrongs.append(del_list[len(del_list) - 1])
+        #當左側點相對下移
+        elif del_list[len(del_list) - 1][0] < del_list[len(del_list) - 2][0] and del_list[len(del_list) - 1][0] < del_list[len(del_list) - 3][0]:
+            if del_list[len(del_list) - 1][1] < del_list[len(del_list) - 2][1] and del_list[len(del_list) - 1][1] < del_list[len(del_list) - 3][1]:
+                if del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 3][2]:
+                    del_corrects.append(del_list[len(del_list) - 1])
+                    cv2.circle(img, (200,500), 5, (0, 255, 0), -1)
+                elif del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 3][2]:
+                    del_wrongs.append(del_list[len(del_list) - 1])
+            elif del_list[len(del_list) - 1][1] > del_list[len(del_list) - 2][1] and del_list[len(del_list) - 1][1] > del_list[len(del_list) - 3][1]:
+                del_wrongs.append(del_list[len(del_list) - 1])
+            elif del_list[len(del_list) - 1][1] == del_list[len(del_list) - 2][1] or del_list[len(del_list) - 1][1] == del_list[len(del_list) - 2][1]:
+                if del_list[len(del_list) - 1][2] < del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] < del_list[len(del_list) - 3][2]:
+                    del_corrects.append(del_list[len(del_list) - 1])
+                    cv2.circle(img, (200,500), 5, (0, 255, 0), -1)
+                elif del_list[len(del_list) - 1][2] >= del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] >= del_list[len(del_list) - 3][2]:
+                    del_wrongs.append(del_list[len(del_list) - 1])
+        #當左側點相對不動
+        elif del_list[len(del_list) - 1][0] == del_list[len(del_list) - 2][0] or del_list[len(del_list) - 1][0] == del_list[len(del_list) - 3][0]:
+            if del_list[len(del_list) - 1][1] < del_list[len(del_list) - 2][1] and del_list[len(del_list) - 1][1] < del_list[len(del_list) - 2][1]:
+                if del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 3][2]:
+                    del_corrects.append(del_list[len(del_list) - 1])
+                    cv2.circle(img, (200,500), 5, (0, 255, 0), -1)
+                elif del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] <= del_list[len(del_list) - 3][2]:
+                    del_wrongs.append(del_list[len(del_list) - 1])
+            elif del_list[len(del_list) - 1][1] > del_list[len(del_list) - 2][1] and del_list[len(del_list) - 1][1] > del_list[len(del_list) - 2][1]:
+                del_corrects.append(del_list[len(del_list) - 1])
+                cv2.circle(img, (200,500), 5, (0, 255, 0), -1)
+            elif del_list[len(del_list) - 1][1] == del_list[len(del_list) - 2][1] or del_list[len(del_list) - 1][1] == del_list[len(del_list) - 2][1]:
+                if del_list[len(del_list) - 1][2] < del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] < del_list[len(del_list) - 3][2]:
+                    del_corrects.append(del_list[len(del_list) - 1])
+                    cv2.circle(img, (200,500), 5, (0, 255, 0), -1)
+                elif del_list[len(del_list) - 1][2] > del_list[len(del_list) - 2][2] and del_list[len(del_list) - 1][2] > del_list[len(del_list) - 3][2]:
+                    del_wrongs.append(del_list[len(del_list) - 1])
+            
+    
+    if len(del_corrects) == 8 and correct == False and wrong == False: 
+        correct_work_times += 1
+        cv2.circle(img, (100,500), 5, (0, 0, 255), -1)
+        correct = True
+    elif wrong == False and len(del_wrongs) == 8 and correct == False:
+        wrong_work_times += 1
+        wrong = True
+
+    if len(del_wrongs) == len(del_corrects) and (correct == True or wrong == True):
+        del_corrects.clear()
+        del_wrongs.clear()
+        correct = False
+        wrong = False
 
 def draw_flow(img, p0, p1):
     for i, (new, old) in enumerate(zip(p1, p0)):
