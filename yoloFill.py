@@ -118,63 +118,7 @@ def FF_trian(img, seed_point,mid_but,left_but,right_but, threshold, y1, y2,x1,x2
     cv2.line(img, (int(right_but[0]), int(right_but[1])), (int(mid_but[0]), int(mid_but[1])), (0, 0, 255), 2)
 
     return ML_gap, LR_gap,MR_gap,delta_LM,delta_MR,tan_but
-    
-#def excer_check(del_LM, del_RM, mid_but, img):
 
-
-    global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump
-    LRM = [del_LM, del_RM, mid_but[1]]
-    del_list.append(LRM)
-
-    if len(del_list) == 1:
-        return
-    else: 
-        if del_list[0][2] + adjust < del_list[len(del_list) - 1][2]:
-            del_wrongs.append(del_list[len(del_list) - 1])
-            del_corrects.clear()
-            #gap = del_list[len(del_list) - 1][2] - del_list[0][2]
-            #jump = True
-            #adj_list.append(gap)
-            #if len(adj_list) > 20:
-                #adjust = sum(adj_list)/len(adj_list)
-                #adj_list.clear()
-            correct = False
-            cv2.circle(img, (200,500), 5, (0, 255, 0), -1)
-        else:
-            #if jump == True and del_list[0][2] == del_list[len(del_list) - 1]:
-                #adj_list.clear()
-            #jump = False
-            if (del_list[len(del_list) - 1][0] == del_list[0][0] and del_list[0][1] == del_list[len(del_list) - 1][1]) or del_list[len(del_list) - 1][2] == del_list[0][2]:
-                del_corrects.clear()
-                cv2.circle(img, (200,500), 5, (0, 255, 0), -1)
-            elif del_list[len(del_list) - 1][0] > del_list[len(del_list) - 2][0]:
-                del_corrects.append(del_list[len(del_list) - 1])
-                del_wrongs.clear()
-                cv2.circle(img, (200,500), 5, (255, 0, 0), -1)
-            elif del_list[len(del_list) - 1][0] < del_list[len(del_list) - 2][0]:
-                if del_list[len(del_list) - 1][1] <  del_list[len(del_list) - 2][1] or del_list[len(del_list) - 1][1] > del_list[len(del_list) - 2][1]:
-                    del_corrects.append(del_list[len(del_list) - 1])
-                    del_wrongs.clear()
-                    cv2.circle(img, (200,500), 5, (255, 0, 0), -1)
-            else:
-                if del_list[len(del_list) - 1][1] < del_list[len(del_list) - 2][1]:
-                    del_corrects.append(del_list[len(del_list) - 1])
-                    del_wrongs.clear()
-                    cv2.circle(img, (200,500), 5, (255, 0, 0), -1)
-                elif del_list[len(del_list) - 1][1] == del_list[len(del_list) - 2][1]:
-                    if del_list[len(del_list) - 1][2] < del_list[len(del_list) - 2][2]:
-                        del_corrects.append(del_list[len(del_list) - 1])
-                        del_wrongs.clear()
-                        cv2.circle(img, (200,500), 5, (255, 0, 0), -1)
-                
-    
-    if len(del_corrects) == 8 : 
-        correct_work_times += 1
-        cv2.circle(img, (100,500), 5, (0, 0, 255), -1)
-            
-    
-    elif len(del_wrongs) == 8 and del_wrongs[7][0] > del_list[0][0]:
-        wrong_work_times += 1
 
 def excer_check(del_LM, del_RM, mid_but, img):
     global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump,wrong
