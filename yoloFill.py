@@ -229,12 +229,12 @@ def main():
     #cap = cv2.VideoCapture('./source_pack/1701332680.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_2.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_1.mp4')
-    #cap = cv2.VideoCapture('./source_pack/kegal_keep2.mp4')
+    cap = cv2.VideoCapture('./source_pack/kegal_keep2.mp4')
     #cap = cv2.VideoCapture("./source_pack/1701334235.mp4")
     #cap = cv2.VideoCapture("./source_pack/1701332749.mp4")
     #cap = cv2.VideoCapture("./source_pack/1701332680.mp4")
     #cap = cv2.VideoCapture('./source_pack/TaUS_K1(kwT).mp4')
-    cap = cv2.VideoCapture('./source_pack/TaUS_V(Wrong).mp4')
+    #cap = cv2.VideoCapture('./source_pack/TaUS_V(Wrong).mp4')
     #cap = cv2.VideoCapture(0)
     frame_rate = int(cap.get(5))                                      #影片幀率
     x1, y1, x2, y2 = 100, 0, 700, 600                                 #剪裁範圍
@@ -324,7 +324,8 @@ def main():
             movement_vector_x = (mid_current[0] - mid_previous[0], mid_current[1] - mid_previous[1])
             movement_vector_y = (core_current[0] - core_previous[0], core_current[1] - core_previous[1])
             verify_point[0] += movement_vector_x[0]
-            verify_point[1] += movement_vector_y[1]
+            if  abs(movement_vector_y[0]) >  abs(movement_vector_y[1]):
+                verify_point[1] += movement_vector_y[1]
 
         img = cv2.circle(img, (int(mid_but[0]), int(mid_but[1])), 5, (0, 255, 0), -1)
         img = cv2.circle(img, (int(left_but[0]), int(left_but[1])), 5, (0, 255, 0), -1)
