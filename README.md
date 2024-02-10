@@ -1,3 +1,3 @@
 ﻿# bladder_medi_ai
- only yoloFill can be used
- graduation project// keep updating
+ only yoloFill can be used /n
+ graduation project/n keep updating
