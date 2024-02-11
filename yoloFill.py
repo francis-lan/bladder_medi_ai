@@ -15,14 +15,17 @@ jump = False
 mid_but_init = None
 left_but_init = None
 right_but_init = None
-
+#循環尋找最低邊界點
 def FF_ver_cycle(img, seed_point_right,seed_point_left ,seed_y,threshold, y1,y2):
     min = [10000,0]
-    for x in range(seed_point_left, seed_point_right):
+    for x in range(seed_point_left, seed_point_right):                                       #從左到右找最低點
         temp = FF_ver_down(img, [x,seed_y], threshold,y1,y2)
         if temp[1] > min[1]:
             min = temp
+    if min[0] == seed_point_left or min[0] == seed_point_right:                                #如果符合條件代表膀胱底是近乎平滑的一元直線 無明顯膀胱底，用中央點來當最低點
+        return FF_ver_down(img, [(seed_point_left + 50),seed_y], threshold,y1,y2)
     return min
+#從seed開始往下找邊界
 def FF_ver_down(img, seed_point, threshold,y1,y2):
     match_points=[]
     seed_color = (0, 0, 0)
@@ -40,7 +43,7 @@ def FF_ver_down(img, seed_point, threshold,y1,y2):
         return seed_point
     else:
         return match_points[len(match_points)-1]
-
+#從seed開始往上找邊界
 def FF_ver_top(img, seed_point, threshold, y1, y2):
     match_points=[]
     seed_color = (0, 0, 0)
@@ -57,7 +60,7 @@ def FF_ver_top(img, seed_point, threshold, y1, y2):
         return seed_point
     else:
         return match_points[len(match_points)-1]
-
+#從seed開始往右找邊界
 def FF_ver_right(img, seed_point, threshold, x1, x2):
     match_points=[]
     seed_color = (0, 0, 0)
@@ -74,7 +77,7 @@ def FF_ver_right(img, seed_point, threshold, x1, x2):
         return seed_point
     else:
         return match_points[len(match_points)-1]
-
+#從seed開始往左找邊界
 def FF_ver_left(img, seed_point, threshold, x1, x2):
     match_points=[]
     seed_color = (0, 0, 0)
@@ -91,7 +94,7 @@ def FF_ver_left(img, seed_point, threshold, x1, x2):
         return seed_point
     else:
         return match_points[len(match_points)-1]
-
+#在底部趨於一元直線時進行資料處裡
 def FF_parr(img, seed_point,left_point, right_point, threshold, y1, y2):
     
     mid_but  = FF_ver_down(img, seed_point, threshold, y1, y2)
@@ -108,7 +111,7 @@ def FF_parr(img, seed_point,left_point, right_point, threshold, y1, y2):
     cv2.line(img, (mid_but[0], mid_but[1]), (seed_point[0], seed_point[1]), (0, 0, 255), 2)
 
     return left_gap, right_gap, mid_gap
-
+#在底部為凹口向上時進行資料處裡
 def FF_trian(img, seed_point,mid_but,left_but,right_but, threshold, y1, y2,x1,x2):
     
     
@@ -131,7 +134,7 @@ def FF_trian(img, seed_point,mid_but,left_but,right_but, threshold, y1, y2,x1,x2
 
     return ML_gap, LR_gap,MR_gap,delta_LM,delta_MR,tan_but,mid_gap
 
-
+#總體運動判斷
 def excer_check(del_LM, del_RM, mid_but, img):
     global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump,wrong
     LRM = [del_LM, del_RM, mid_but[1]]
@@ -210,7 +213,7 @@ def excer_check(del_LM, del_RM, mid_but, img):
             del_wrongs.clear()
             correct = False
             wrong = False
-
+#軌跡跟蹤
 def draw_flow(img, p0, p1):
     for i, (new, old) in enumerate(zip(p1, p0)):
         a, b = new.ravel()
@@ -220,12 +223,12 @@ def draw_flow(img, p0, p1):
     return img    
     
     
-    
+#AI本體 
 def main(): 
     global mid_but_init, left_but_init,right_but_init 
     lk_params = dict(winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
     threshold = 90
-    model = YOLO("./runs/detect/train7/weights/best.pt")
+    model = YOLO("./runs/detect/train7/weights/best.pt")     #找膀胱位置用模型
     #cap = cv2.VideoCapture('./source_pack/1701332680.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_2.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_1.mp4')
@@ -233,9 +236,9 @@ def main():
     #cap = cv2.VideoCapture("./source_pack/1701334235.mp4")
     #cap = cv2.VideoCapture("./source_pack/1701332749.mp4")
     #cap = cv2.VideoCapture("./source_pack/1701332680.mp4")
-    cap = cv2.VideoCapture('./source_pack/TaUS_K1(kwT).mp4')
-    #cap = cv2.VideoCapture('./source_pack/TaUS_V(Wrong).mp4')
-    #cap = cv2.VideoCapture(0)
+    #cap = cv2.VideoCapture('./source_pack/TaUS_K1(kwT).mp4')
+    cap = cv2.VideoCapture('./source_pack/TaUS_V(Wrong).mp4')
+    #cap = cv2.VideoCapture(0)                                          #開鏡頭用的
     frame_rate = int(cap.get(5))                                      #影片幀率
     x1, y1, x2, y2 = 100, 0, 700, 600                                 #剪裁範圍
     gap = []
@@ -268,7 +271,8 @@ def main():
     
         #results = model(img)                      #yolo直接預測
         setxyxy = model.predict(img)
-
+        
+        #把邊界點抓出來
         for r in setxyxy:
             boxes = r.boxes
             for box in boxes:
@@ -284,16 +288,16 @@ def main():
         cv2.line(img, (bx1, by1), (bx2, by1), (0, 0, 255), 2)
         cv2.line(img, (bx2, by2), (bx2, by1), (0, 0, 255), 2)
         cv2.line(img, (bx2, by2), (bx1, by2), (0, 0, 255), 2)
-
+         #設定種子
         if((bx1 + bx2)//2 - seed_x > 5 and (by1 + by2)//2 - seed_y >5):
             seed_point = ((bx1 + bx2)//2, (by1+by2)//2)
             left_point = (((bx1+bx2)//2 + bx1)//2, (by1+by2)//2)
             right_point = (((bx1+bx2)//2 + bx2)//2, (by1+by2)//2)
             seed_x = (bx1 + bx2)//2
             seed_y = (by1 + by2)//2
-        
+        #光流追蹤初始點
         if mid_but_init is None:
-            mid_but_init = FF_ver_cycle(img, (int(seed_point[0]) + 60),(int(seed_point[0]) - 60), seed_point[1],threshold, y1, y2)
+            mid_but_init = FF_ver_cycle(img, (int(seed_point[0]) + 50),(int(seed_point[0]) - 50), seed_point[1],threshold, y1, y2)
             left_but_init = FF_ver_down(img, left_point, threshold, y1, y2)
             right_but_init = FF_ver_down(img, right_point, threshold, y1, y2)
             verify_point = [mid_but_init[0], mid_but_init[1] - 80]
@@ -313,7 +317,7 @@ def main():
 
         good_new = np.array([])
         good_old = np.array([])
-
+        #光流追蹤點位置
         if st.shape[0] > 0:
             good_old = p0[st[:, 0] == 1]
             good_new = p1[st[:, 0] == 1]
@@ -344,7 +348,7 @@ def main():
         #mid_but  = FF_ver_down(img, seed_point, threshold, y1, y2)
         gg=[]
         deal = []
-
+        #開始判讀
         if(abs(left_but[1] - mid_but[1]) < 10) and (abs(right_but[1] - mid_but[1]) < 10):
             left_gap, right_gap, mid_gap = FF_parr(img, seed_point,left_point, right_point, threshold, y1, y2)
             
