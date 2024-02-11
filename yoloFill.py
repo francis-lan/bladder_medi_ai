@@ -357,7 +357,7 @@ def main():
             print("平行處理")
             parr = True
         else:
-            ML_gap, LR_gap,MR_gap, del_LM, del_RM ,tan_But,mid_gap= FF_trian(img, verify_point, mid_but, left_but, right_but, threshold, y1, y2,x1,x2)
+            ML_gap, LR_gap,MR_gap, del_LM, del_RM ,tan_But,mid_gap= FF_trian(img, verify_point, mid_but, left_but, right_but, threshold, y1, y2,x1,x2) and parr == False
             excer_check(del_LM, del_RM, mid_but, img)
             print("三角處理")
             gg = [ML_gap, mid_gap,MR_gap,LR_gap]
