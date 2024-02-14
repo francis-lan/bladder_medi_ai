@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 from ultralytics import YOLO
-
+personal_arrangement = 3
+personal_miss = round(personal_arrangement / 6 , 3)
 movement = []
 del_corrects = []
 del_wrongs = []
@@ -10,7 +11,7 @@ correct_work_times = 0
 wrong_work_times = 0
 correct = False
 wrong = False
-adjust = 5
+
 adj_list=[]
 jump = False
 mid_but_init = None
@@ -21,17 +22,19 @@ def pre_correct_count(movement):
     pcc = []
     for i in range(len(movement)-1, 0, -1):
         if movement[i] < 0:
-            pcc.append(movement[i])
+            pcc.append(abs(movement[i]))
         elif movement[i] > 0:
             return pcc
+    return pcc
 
 def pre_wrong_count(movement):
     pwc = []
     for i in range(len(movement)-1, 0, -1):
-        if movement[i] < 0:
-            pwc.append(movement[i])
-        elif movement[i] > 0:
+        if movement[i] > 0:
+            pwc.append(abs(movement[i]))
+        elif movement[i] < 0:
             return pwc
+    return pwc
         
 #循環尋找最低邊界點
 def FF_ver_cycle(img, seed_point_right,seed_point_left ,seed_y,threshold, y1,y2):
@@ -159,59 +162,86 @@ def non_zero_pre(move):
             return True
         elif move[i] > 0:
             return False
-
+    return False
 #總體運動判斷
-def excer_check(del_LM, del_RM, mid_but, img):
-    global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump,wrong,movement
-    LRM = [del_LM, del_RM, mid_but[1]]
+def excer_check(del_LM, del_RM, mid_gap, img):
+    global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump,wrong,movement,personal_arrangement,personal_miss
+    LRM = [del_LM, del_RM, mid_gap]
     del_list.append(LRM)
     temp = []
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.4
+    font_thickness = 1
 
     if len(del_list) <= 2:
         return
     else: 
         #當中央點上移
-        if del_list[len(del_list)-1][2] < del_list[len(del_list)-2][2] :
+        if del_list[len(del_list)-1][2] + 0.3 < del_list[len(del_list)-2][2] :
             if non_zero_pre(movement) == False:
-                if len(del_corrects) == 0:
-                    del_wrongs.clear()
-                elif len(del_corrects) > 0 and len(del_wrongs) > 0:  
-                    judge = min(del_corrects[0][2],del_wrongs[len(del_wrongs)-1][2])
-                    if judge - del_corrects[len(del_corrects)-1][2] > 4:
-                        correct_work_times += 1
-                        del_corrects.clear()
-                        del_wrongs.clear()
-                        cv2.circle(img, (100,400), 5, (0, 255, 0), -1)
-                    elif judge == del_corrects[len(del_corrects)-1][2]:
-                        del_corrects.clear()
-                        del_wrongs.clear()
-                else:
-                    if len(del_corrects) > 0:
-                        if del_corrects[len(del_corrects)-1][2] < del_list[len(del_list)-1][2]:
-                            if del_list[len(del_list)-1][2] - del_corrects[len(del_corrects)-1][2] < 1:
-                                temp = pre_wrong_count(movement)
-                                for i in temp:
-                                    del_wrongs.pop(i)
+                if len(del_corrects) > 0 and len(del_wrongs) > 0:
+                    if del_corrects[0][2] > del_wrongs[len(del_wrongs)-1][2]:
+                        if del_wrongs[len(del_wrongs)-1][2] - del_corrects[len(del_corrects)-1][2] > personal_arrangement:
+                            correct_work_times += 1
+                            del_corrects.clear()
+                            del_wrongs.clear()
+                            cv2.circle(img, (100,400), 5, (0, 255, 0), -1)
+                    elif del_corrects[0][2] < del_wrongs[len(del_wrongs)-1][2]:
+                        if del_corrects[0][2] - del_corrects[len(del_corrects)-1][2] > personal_arrangement:
+                            correct_work_times += 1
+                            del_corrects.clear()
+                            del_wrongs.clear()
+                            cv2.circle(img, (100,400), 5, (0, 255, 0), -1)
                         else:
+                            
+                            del_corrects.clear()
+                            del_wrongs.clear()
+                            cv2.circle(img, (500,400), 5, (0, 90, 30), -1)
+                    else:
+                        
+                        cv2.circle(img, (500,300), 5, (90, 90, 30), -1)
+                if len(del_corrects) > 0:
+                    if del_corrects[len(del_corrects)-1][2] < del_list[len(del_list)-1][2]:
+                        if del_list[len(del_list)-1][2] - del_corrects[len(del_corrects)-1][2] < personal_miss:
+                            temp = pre_wrong_count(movement)
+                            for i in temp:
+                                if i <= len(del_wrongs):
+                                    del_wrongs.pop((i - 1))
+                                    cv2.circle(img, (500,500), 5, (0, 255, 0), -1)
+                        else:
+                            del_corrects.clear()
                             del_corrects.append(del_list[len(del_list)-1])
                             movement.append(-len(del_corrects))
                             cv2.circle(img, (100,500), 5, (255, 0, 0), -1)
                     else:
+                        
                         del_corrects.append(del_list[len(del_list)-1])
                         movement.append(-len(del_corrects))
                         cv2.circle(img, (100,500), 5, (255, 0, 0), -1)
-            elif del_corrects[len(del_corrects)-1][2] > del_list[len(del_list)-1][2]:        
+                else:
+                    del_corrects.append(del_list[len(del_list)-1])
+                    movement.append(-len(del_corrects))
+                    cv2.circle(img, (100,500), 5, (255, 0, 0), -1)
+            else:       
                 del_corrects.append(del_list[len(del_list)-1])
                 movement.append(-len(del_corrects))
                 cv2.circle(img, (100,500), 5, (255, 0, 0), -1)
-        elif del_list[len(del_list)-1][2] > del_list[len(del_list)-2][2]  :
+        elif del_list[len(del_list)-1][2] > del_list[len(del_list)-2][2] + 0.3  :
             if non_zero_pre(movement) == True:
                 if len(del_wrongs) > 0:
                     if del_list[len(del_list)-1][2] < del_wrongs[len(del_wrongs)-1][2]:
-                        if del_wrongs[len(del_wrongs)-1][2] - del_list[len(del_list)-1][2] < 1:
+                        if del_wrongs[len(del_wrongs)-1][2] - del_list[len(del_list)-1][2] < personal_miss:
                             temp = pre_correct_count(movement)
-                            for i in temp:
-                                del_corrects.pop(i)
+                            if len(temp) > 0:
+                                for i in temp:
+                                    if i <= len(del_corrects):
+                                        del_corrects.pop((i - 1))
+                                        cv2.circle(img, (500,500), 5, (255, 255, 0), -1)
+                        else:
+                            del_wrongs.clear()
+                            del_wrongs.append(del_list[len(del_list)-1])
+                            movement.append(len(del_wrongs))
+                            cv2.circle(img, (100,500), 5, (0, 0, 255), -1)            
                     else:
                         del_wrongs.append(del_list[len(del_list)-1])
                         movement.append(len(del_wrongs))
@@ -220,15 +250,23 @@ def excer_check(del_LM, del_RM, mid_but, img):
                     del_wrongs.append(del_list[len(del_list)-1])
                     movement.append(len(del_wrongs))
                     cv2.circle(img, (100,500), 5, (0, 0, 255), -1)
-            elif del_list[len(del_list)-1][2] > del_wrongs[len(del_wrongs)-1][2]:      
+            else:   
                 del_wrongs.append(del_list[len(del_list)-1])
                 movement.append(len(del_wrongs))
                 cv2.circle(img, (100,500), 5, (0, 0, 255), -1)
-        elif del_list[len(del_list)-1][2] <= del_list[len(del_list)-2][2] + 0.3 and del_list[len(del_list)-1][2] >= del_list[len(del_list)-2][2] - 0.3:
+        elif del_list[len(del_list)-1][2] == del_list[len(del_list)-2][2]:
             movement.append(0)
             cv2.circle(img, (100,500), 5, (255, 255, 0), -1)
+    thcorrect = [row[2] for row in del_corrects]
+    thwrong = [row[2] for row in del_wrongs]
+    time = f'{"worktimes:"}: {correct_work_times}'
+    cv2.putText(img, time, (80,80), font, font_scale,(0, 0, 255), font_thickness)
+    text = ' '.join(map(str, thcorrect))
+    cv2.putText(img, text, (100,400), font, font_scale,(0, 0, 255), font_thickness)
+    text2 = ' '.join(map(str, thwrong))
+    cv2.putText(img, text2, (100,450), font, font_scale,(255, 0, 0), font_thickness)  
             
-    
+       
     
     
 #軌跡跟蹤
@@ -252,8 +290,8 @@ def main():
     #cap = cv2.VideoCapture('./source_pack/1701332680.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_2.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_1.mp4')
-    cap = cv2.VideoCapture('./source_pack/kegal_keep1.mp4')
-    #cap = cv2.VideoCapture('./source_pack/kegal_keep2.mp4')
+    #cap = cv2.VideoCapture('./source_pack/kegal_keep1.mp4')
+    cap = cv2.VideoCapture('./source_pack/kegal_keep2.mp4')
     #cap = cv2.VideoCapture("./source_pack/1701334235.mp4")
     #cap = cv2.VideoCapture("./source_pack/1701332749.mp4")
     #cap = cv2.VideoCapture("./source_pack/1701332680.mp4")
@@ -377,7 +415,7 @@ def main():
             parr = True
         elif parr == False:
             ML_gap, LR_gap,MR_gap, del_LM, del_RM ,tan_But,mid_gap= FF_trian(img, verify_point, mid_but, left_but, right_but, threshold, y1, y2,x1,x2)
-            excer_check(del_LM, del_RM, mid_but, img)
+            excer_check(del_LM, del_RM, mid_gap, img)
             print("三角處理")
             gg = [ML_gap, mid_gap,MR_gap,LR_gap]
             deal = [del_LM, del_RM]
