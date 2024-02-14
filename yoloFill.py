@@ -181,6 +181,7 @@ def excer_check(del_LM, del_RM, mid_but, img):
                         correct_work_times += 1
                         del_corrects.clear()
                         del_wrongs.clear()
+                        cv2.circle(img, (100,400), 5, (0, 255, 0), -1)
                     elif judge == del_corrects[len(del_corrects)-1][2]:
                         del_corrects.clear()
                         del_wrongs.clear()
@@ -194,12 +195,15 @@ def excer_check(del_LM, del_RM, mid_but, img):
                         else:
                             del_corrects.append(del_list[len(del_list)-1])
                             movement.append(-len(del_corrects))
+                            cv2.circle(img, (100,500), 5, (255, 0, 0), -1)
                     else:
                         del_corrects.append(del_list[len(del_list)-1])
                         movement.append(-len(del_corrects))
+                        cv2.circle(img, (100,500), 5, (255, 0, 0), -1)
             else:        
                 del_corrects.append(del_list[len(del_list)-1])
                 movement.append(-len(del_corrects))
+                cv2.circle(img, (100,500), 5, (255, 0, 0), -1)
         elif del_list[len(del_list)-1][2] > del_list[len(del_list)-2][2]  :
             if non_zero_pre(movement) == True:
                 if len(del_wrongs) > 0:
@@ -211,12 +215,15 @@ def excer_check(del_LM, del_RM, mid_but, img):
                     else:
                         del_wrongs.append(del_list[len(del_list)-1])
                         movement.append(len(del_wrongs))
+                        cv2.circle(img, (100,500), 5, (0, 0, 255), -1)
                 else:
                     del_wrongs.append(del_list[len(del_list)-1])
                     movement.append(len(del_wrongs))
+                    cv2.circle(img, (100,500), 5, (0, 0, 255), -1)
             else:      
                 del_wrongs.append(del_list[len(del_list)-1])
                 movement.append(len(del_wrongs))
+                cv2.circle(img, (100,500), 5, (0, 0, 255), -1)
         elif del_list[len(del_list)-1][2] <= del_list[len(del_list)-2][2] + 0.3 and del_list[len(del_list)-1][2] >= del_list[len(del_list)-2][2] - 0.3:
             movement.append(0)
             cv2.circle(img, (100,500), 5, (255, 255, 0), -1)
