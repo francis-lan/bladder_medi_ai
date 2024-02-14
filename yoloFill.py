@@ -200,7 +200,7 @@ def excer_check(del_LM, del_RM, mid_but, img):
                         del_corrects.append(del_list[len(del_list)-1])
                         movement.append(-len(del_corrects))
                         cv2.circle(img, (100,500), 5, (255, 0, 0), -1)
-            else:        
+            elif del_corrects[len(del_corrects)-1][2] > del_list[len(del_list)-1][2]:        
                 del_corrects.append(del_list[len(del_list)-1])
                 movement.append(-len(del_corrects))
                 cv2.circle(img, (100,500), 5, (255, 0, 0), -1)
@@ -220,7 +220,7 @@ def excer_check(del_LM, del_RM, mid_but, img):
                     del_wrongs.append(del_list[len(del_list)-1])
                     movement.append(len(del_wrongs))
                     cv2.circle(img, (100,500), 5, (0, 0, 255), -1)
-            else:      
+            elif del_list[len(del_list)-1][2] > del_wrongs[len(del_wrongs)-1][2]:      
                 del_wrongs.append(del_list[len(del_list)-1])
                 movement.append(len(del_wrongs))
                 cv2.circle(img, (100,500), 5, (0, 0, 255), -1)
