@@ -264,7 +264,12 @@ def excer_check(del_LM, del_RM, mid_gap, img):
     text = ' '.join(map(str, thcorrect))
     cv2.putText(img, text, (100,400), font, font_scale,(0, 0, 255), font_thickness)
     text2 = ' '.join(map(str, thwrong))
-    cv2.putText(img, text2, (100,450), font, font_scale,(255, 0, 0), font_thickness)  
+    cv2.putText(img, text2, (100,450), font, font_scale,(255, 0, 0), font_thickness) 
+    if len(del_corrects) > 0 and len(del_wrongs) > 0:
+        if del_wrongs[len(del_wrongs)-1][2] - del_corrects[0][2] > 2 * personal_arrangement:
+            warning = 'Warning: Wrong Movement'
+            cv2.putText(img, warning, (80,200), font, 1.8,(0, 0, 255), 3)
+            cv2.circle(img, (150,400), 5, (0, 255, 0), -1) 
             
        
     
@@ -284,8 +289,6 @@ def main():
     global mid_but_init, left_but_init,right_but_init 
     lk_params = dict(winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
     threshold = 90
-    traingle = False
-    parr = False
     model = YOLO("./runs/detect/train7/weights/best.pt")     #找膀胱位置用模型
     #cap = cv2.VideoCapture('./source_pack/1701332680.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_2.mp4')
@@ -408,22 +411,16 @@ def main():
         gg=[]
         deal = []
         #開始判讀
-        if(abs(left_but[1] - mid_but[1]) < 10) and (abs(right_but[1] - mid_but[1]) < 10) and traingle == False:
-            left_gap, right_gap, mid_gap = FF_parr(img, seed_point,left_point, right_point, threshold, y1, y2)
-            
-            print("平行處理")
-            parr = True
-        elif parr == False:
-            ML_gap, LR_gap,MR_gap, del_LM, del_RM ,tan_But,mid_gap= FF_trian(img, verify_point, mid_but, left_but, right_but, threshold, y1, y2,x1,x2)
-            excer_check(del_LM, del_RM, mid_gap, img)
-            print("三角處理")
-            gg = [ML_gap, mid_gap,MR_gap,LR_gap]
-            deal = [del_LM, del_RM]
+        ML_gap, LR_gap,MR_gap, del_LM, del_RM ,tan_But,mid_gap= FF_trian(img, verify_point, mid_but, left_but, right_but, threshold, y1, y2,x1,x2)
+        excer_check(del_LM, del_RM, mid_gap, img)
+        print("三角處理")
+        gg = [ML_gap, mid_gap,MR_gap,LR_gap]
+        deal = [del_LM, del_RM]
 
-            gap.append(gg)
-            point.append(deal)
-            huge_gap.append(tan_But)
-            traingle = True
+        gap.append(gg)
+        point.append(deal)
+        huge_gap.append(tan_But)
+        
             
 
             
