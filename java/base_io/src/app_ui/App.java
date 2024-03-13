@@ -236,11 +236,12 @@ public class App {
                 break;
             }
         }
-        if (excerVarValue != null && excer_time != 0) {
+        if (excerVarValue != null) {
             range = Float.parseFloat(excerVarValue);
             System.out.println("excer_var: " + excerVarValue);
             System.out.println("range: " + range);
             label.setText("range: " + range);
+            excer_text.setText("excer_time: " + excer_time);
             System.out.println("excer_time: " + excer_time);
            
             
