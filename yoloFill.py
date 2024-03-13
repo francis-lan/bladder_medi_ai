@@ -16,6 +16,7 @@ wrong_work_times = 0
 correct = False
 wrong = False
 excer_type = 0
+excervalue = 0
 adj_list=[]
 jump = False
 mid_but_init = None
@@ -173,7 +174,7 @@ def non_zero_pre(move):
     return False
 #總體運動判斷
 def excer_check(del_LM, del_RM, mid_gap, img):
-    global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump,wrong,movement,personal_arrangement,personal_miss,excer_type
+    global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adj_list,jump,wrong,movement,personal_arrangement,personal_miss,excer_type,excervalue
     LRM = [del_LM, del_RM, mid_gap]
     del_list.append(LRM)
     temp = []
@@ -279,6 +280,7 @@ def excer_check(del_LM, del_RM, mid_gap, img):
             cv2.putText(img, warning, (80,200), font, 1.8,(0, 0, 255), 3)
             cv2.circle(img, (150,400), 5, (0, 255, 0), -1) 
         excer_type = (del_corrects[0][2] - del_wrongs[len(del_wrongs)-1][2]) - (del_wrongs[len(del_wrongs)-1][2] - del_wrongs[0][2])
+        excervalue = (del_corrects[0][2] - del_wrongs[len(del_wrongs)-1][2])
     
     
 
@@ -295,7 +297,7 @@ def draw_flow(img, p0, p1):
     
 #AI本體 
 def main(): 
-    global mid_but_init, left_but_init,right_but_init,personal_arrangement 
+    global mid_but_init, left_but_init,right_but_init,personal_arrangement,excervalue
     lk_params = dict(winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
     if len(sys.argv) != 3:
         print("Usage: python work.py <string_parameter> <integer_parameter>")
@@ -438,7 +440,7 @@ def main():
         gap.append(gg)
         point.append(deal)
         huge_gap.append(tan_But)
-        print("excer_var:",excer_type)
+        print("excer_var:",excervalue)
         print("correct_work_times:", correct_work_times)
           
 
