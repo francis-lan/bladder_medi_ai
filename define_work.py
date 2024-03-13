@@ -1,4 +1,5 @@
 import cv2
+import sys
 import numpy as np
 from ultralytics import YOLO
 personal_arrangement = 0
@@ -195,18 +196,24 @@ def main():
     global mid_but_init, left_but_init,right_but_init 
     lk_params = dict(winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
     threshold = 90
+    if len(sys.argv) != 2:
+        print("Usage: python work.py <string_parameter> <integer_parameter>")
+        return
+
+    string_param = sys.argv[1]
     model = YOLO("./runs/detect/train7/weights/best.pt")     #找膀胱位置用模型
     #cap = cv2.VideoCapture('./source_pack/1701332680.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_2.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_1.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_keep1.mp4')
-    cap = cv2.VideoCapture('./source_pack/kegal_keep2.mp4')
+    #cap = cv2.VideoCapture('./source_pack/kegal_keep2.mp4')
     #cap = cv2.VideoCapture("./source_pack/1701334235.mp4")
     #cap = cv2.VideoCapture("./source_pack/1701332749.mp4")
     #cap = cv2.VideoCapture("./source_pack/1701332680.mp4")
     #cap = cv2.VideoCapture('./source_pack/TaUS_K1(kwT).mp4')
     #cap = cv2.VideoCapture('./source_pack/TaUS_V(Wrong).mp4')
-    #cap = cv2.VideoCapture(0)                                          #開鏡頭用的
+    #cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(string_param)
     frame_rate = int(cap.get(5))                                      #影片幀率
     x1, y1, x2, y2 = 100, 0, 700, 600                                 #剪裁範圍
     gap = []
@@ -319,14 +326,14 @@ def main():
         #開始判讀
         ML_gap, LR_gap,MR_gap, del_LM, del_RM ,tan_But,mid_gap= FF_trian(img, verify_point, mid_but, left_but, right_but, threshold, y1, y2,x1,x2)
         excer_check(del_LM, del_RM, mid_gap, img)
-        print("三角處理")
+        
         gg = [ML_gap, mid_gap,MR_gap,LR_gap]
         deal = [del_LM, del_RM]
 
         gap.append(gg)
         point.append(deal)
         huge_gap.append(tan_But)
-        
+        print("excer_var:",round(personal_arrangement - personal_miss,3))
             
 
             
@@ -340,10 +347,8 @@ def main():
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
-    print("gap = ", gap)
-    print("point = ", point)
-    print("huge_gap = ", huge_gap)
-    print("運動變數:",round(personal_arrangement - personal_miss,3))
+    
+    
     cap.release()
     cv2.destroyAllWindows()
 

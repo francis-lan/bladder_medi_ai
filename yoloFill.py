@@ -1,7 +1,11 @@
 import cv2
+import tkinter as tk
+from tkinter import ttk
 import numpy as np
 from ultralytics import YOLO
+import sys
 personal_arrangement = 3
+
 personal_miss = round(personal_arrangement / 6 , 3)
 movement = []
 del_corrects = []
@@ -11,12 +15,16 @@ correct_work_times = 0
 wrong_work_times = 0
 correct = False
 wrong = False
-
+excer_type = 0
 adj_list=[]
 jump = False
 mid_but_init = None
 left_but_init = None
 right_but_init = None
+
+
+
+
 
 def pre_correct_count(movement):
     pcc = []
@@ -165,7 +173,7 @@ def non_zero_pre(move):
     return False
 #總體運動判斷
 def excer_check(del_LM, del_RM, mid_gap, img):
-    global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump,wrong,movement,personal_arrangement,personal_miss
+    global correct_work_times, wrong_work_times, del_corrects, del_wrongs, del_list,correct,adjust,adj_list,jump,wrong,movement,personal_arrangement,personal_miss,excer_type
     LRM = [del_LM, del_RM, mid_gap]
     del_list.append(LRM)
     temp = []
@@ -266,14 +274,15 @@ def excer_check(del_LM, del_RM, mid_gap, img):
     text2 = ' '.join(map(str, thwrong))
     cv2.putText(img, text2, (100,450), font, font_scale,(255, 0, 0), font_thickness) 
     if len(del_corrects) > 0 and len(del_wrongs) > 0:
-        if del_wrongs[len(del_wrongs)-1][2] - del_corrects[0][2] > 2 * personal_arrangement:
+        if del_wrongs[len(del_wrongs)-1][2] - del_corrects[0][2] > (2 * personal_arrangement):
             warning = 'Warning: Wrong Movement'
             cv2.putText(img, warning, (80,200), font, 1.8,(0, 0, 255), 3)
             cv2.circle(img, (150,400), 5, (0, 255, 0), -1) 
-            
-       
+        excer_type = (del_corrects[0][2] - del_wrongs[len(del_wrongs)-1][2]) - (del_wrongs[len(del_wrongs)-1][2] - del_wrongs[0][2])
     
     
+
+
 #軌跡跟蹤
 def draw_flow(img, p0, p1):
     for i, (new, old) in enumerate(zip(p1, p0)):
@@ -286,21 +295,30 @@ def draw_flow(img, p0, p1):
     
 #AI本體 
 def main(): 
-    global mid_but_init, left_but_init,right_but_init 
+    global mid_but_init, left_but_init,right_but_init,personal_arrangement 
     lk_params = dict(winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+    if len(sys.argv) != 3:
+        print("Usage: python work.py <string_parameter> <integer_parameter>")
+        return
+
+    string_param = sys.argv[1]
+    float_param = float(sys.argv[2])
     threshold = 90
+    
+    if float_param > 0:
+        personal_arrangement = float_param
     model = YOLO("./runs/detect/train7/weights/best.pt")     #找膀胱位置用模型
     #cap = cv2.VideoCapture('./source_pack/1701332680.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_2.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_1.mp4')
     #cap = cv2.VideoCapture('./source_pack/kegal_keep1.mp4')
-    cap = cv2.VideoCapture('./source_pack/kegal_keep2.mp4')
+    #cap = cv2.VideoCapture('./source_pack/kegal_keep2.mp4')
     #cap = cv2.VideoCapture("./source_pack/1701334235.mp4")
     #cap = cv2.VideoCapture("./source_pack/1701332749.mp4")
     #cap = cv2.VideoCapture("./source_pack/1701332680.mp4")
     #cap = cv2.VideoCapture('./source_pack/TaUS_K1(kwT).mp4')
     #cap = cv2.VideoCapture('./source_pack/TaUS_V(Wrong).mp4')
-    #cap = cv2.VideoCapture(0)                                          #開鏡頭用的
+    cap = cv2.VideoCapture(string_param)                                          #開鏡頭用的
     frame_rate = int(cap.get(5))                                      #影片幀率
     x1, y1, x2, y2 = 100, 0, 700, 600                                 #剪裁範圍
     gap = []
@@ -309,7 +327,7 @@ def main():
 
     seed_x = 0
     seed_y = 0
-
+    
     
 
 
@@ -420,8 +438,9 @@ def main():
         gap.append(gg)
         point.append(deal)
         huge_gap.append(tan_But)
-        
-            
+        print("excer_var:",excer_type)
+        print("correct_work_times:", correct_work_times)
+          
 
             
 
@@ -434,10 +453,7 @@ def main():
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
-    print("gap = ", gap)
-    print("point = ", point)
-    print("huge_gap = ", huge_gap)
-    print("correct_work_times = ", correct_work_times)
+    
     cap.release()
     cv2.destroyAllWindows()
 
